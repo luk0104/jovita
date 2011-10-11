@@ -1,6 +1,6 @@
 SRCS = jovita.cpp parser.cpp opcode.cpp cpu.cpp
 
-TEST_SRCS = test_opcode.cpp
+#TEST_SRCS = test_opcode.cpp
 
 SRCS += $(TEST_SRCS)
 

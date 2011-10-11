@@ -6,6 +6,19 @@
 #include "machine.h"
 #include "cpu.h"
 
+#define BEGIN_OPCODE(x) switch (x) {
+#define OP_OPCODE(x) case x: x##_execute (rhs); break;
+#define END_OPCODE() }
+
+#define OPS_OPCODE(x) \
+	BEGIN_OPCODE (x) \
+	OP_OPCODE(AND) \
+	OP_OPCODE(ADD) \
+	OP_OPCODE(LV) \
+	OP_OPCODE(SUB) \
+	OP_OPCODE(NOOP) \
+	END_OPCODE()
+
 namespace Error {
 		
 	namespace Machine {
@@ -38,7 +51,7 @@ private:
 class OPCode {
 
 public:
-	typedef enum { ADD, AND, LV } OP;
+	typedef enum { ADD, SUB, AND, NOOP, LV } OP;
 
 public:
 	OPCode (OP type);
@@ -49,9 +62,12 @@ public:
 	void execute (CPU&);
 
 private:
+	void ABS_execute (CPU& cpu);
 	void ADD_execute (CPU& cpu);
+	void SUB_execute (CPU& cpu);
 	void AND_execute (CPU& cpu);
 	void LV_execute (CPU& cpu);
+	void NOOP_execute (CPU& cpu);
 
 private:
 	OP type;

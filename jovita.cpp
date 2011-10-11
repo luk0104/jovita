@@ -5,8 +5,6 @@
 #include "cpu.h"
 #include "parser.h"
 
-void test_opcode_and (Machine::CPU&);
-
 int
 main (int argc, char *argv[])
 {
@@ -31,13 +29,12 @@ main (int argc, char *argv[])
 		if (!strncasecmp (cmd, "parse ", 6)) {
 			Parser::Parser parser(cmd+6);
 			Machine::OPCode *code;
-			while ( (code = parser.nextOPCode ()) != NULL)
+			while ( (code = parser.nextOPCode ()) != NULL) {
 				code->execute (cpu);
+				delete code;
+			}
 		}
 		
-		if (!strcasecmp (cmd, "test_and"))
-			test_opcode_and (cpu);
-
 	}
 
 	return 0;

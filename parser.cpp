@@ -11,14 +11,6 @@ namespace Parser {
 
 	}
 	
-#define BEGIN(x,y) \
-	if (!strcasecmp (word.c_str (), #x)) { \
-	std::cout << "Parsing '" << #x << "' opcode" << std::endl; \
-	return parse_opcode (Machine::OPCode::x, y); }
-#define OP(x,y) else BEGIN(x,y)
-#define END() \
-	else { std::cout << "Unknown opcode" << std::endl; break; } 
-
 	Machine::OPCode * Parser::nextOPCode (void) {
 
 		char ch;
@@ -30,12 +22,7 @@ namespace Parser {
 			{
 				case Parser::WORD:
 		 			std::cout << "[" << word << "]" << std::endl;
-			
-					BEGIN(AND,3)
-					OP(LV,2)
-					OP(ADD,3)
-					END()
-					
+					OPS_PARSER()
 					break;
 
 				case Parser::SEMICOLON:
@@ -47,10 +34,6 @@ namespace Parser {
 		return NULL;
 
 	}
-
-#undef BEGIN
-#undef OP
-#undef END
 
 	Machine::OPCode * Parser::parse_opcode (Machine::OPCode op, int params) {
 
