@@ -18,14 +18,7 @@
  *
  * noop
  */
-#define NOOP 0x00
-
-/**
- * Load value
- *
- * lv Rdest, val
- */
-#define LV 0x08
+//#define NOOP 0x00
 
 /**
  * Absolute value
@@ -33,13 +26,6 @@
  * abs Rdest, Rsrc
  */
 #define ABS 0x01
-
-/**
- * Addition
- *
- * add Rdest, src1, src2
- */
-#define ADD 0x02
 
 /**
  * Substract
@@ -54,13 +40,6 @@
  * neg Rdest, src
  */
 #define NEG 0x04
-
-/**
- * AND
- *
- * and Rdest, src1, src2
- */
-#define AND 0x05
 
 /**
  * OR

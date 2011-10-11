@@ -2,6 +2,7 @@
 #define __OPCODE_H
 
 #include <iostream>
+#include <vector>
 #include "machine.h"
 #include "cpu.h"
 
@@ -37,22 +38,24 @@ private:
 class OPCode {
 
 public:
-	virtual ~OPCode (void) { };
-
-	virtual void execute (CPU&) = 0;
-
-};
-
-class OPCode_AND : public OPCode {
+	typedef enum { ADD, AND, LV } OP;
 
 public:
-	OPCode_AND (Parameter p1, Parameter p2, Parameter p3);
-	~OPCode_AND (void);
+	OPCode (OP type);
+	~OPCode (void);
+
+	void addParameter (Parameter* rhs);
 
 	void execute (CPU&);
 
 private:
-	Parameter params[3];
+	void ADD_execute (CPU& cpu);
+	void AND_execute (CPU& cpu);
+	void LV_execute (CPU& cpu);
+
+private:
+	OP type;
+	std::vector<Parameter *> params;
 
 };
 

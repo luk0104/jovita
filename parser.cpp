@@ -11,23 +11,35 @@ namespace Parser {
 
 	}
 	
+#define BEGIN(x,y) \
+	if (!strcasecmp (word.c_str (), #x)) { \
+	std::cout << "Parsing '" << #x << "' opcode" << std::endl; \
+	return parse_opcode (Machine::OPCode::x, y); }
+#define OP(x,y) else BEGIN(x,y)
+#define END() \
+	else { std::cout << "Unknown opcode" << std::endl; break; } 
+
 	Machine::OPCode * Parser::nextOPCode (void) {
 
 		char ch;
 		std::cout << "OPCode: " << str << std::endl;
 
-		while (!isEOS ()) {
+		while (isData ()) {
 			
-			std::string str = nextString ();
+			switch (nextToken ())
+			{
+				case Parser::WORD:
+		 			std::cout << "[" << word << "]" << std::endl;
+			
+					BEGIN(AND,3)
+					OP(LV,2)
+					OP(ADD,3)
+					END()
+					
+					break;
 
-			std::cout << "[" << str << "]" << std::endl;
-			
-			if (!strcasecmp (str.c_str (), "and")) {
-				std::cout << "Parsing 'AND' opcode" << std::endl;
-				return parse_AND ();
-			} else {
-				std::cout << "Unknown opcode" << std::endl;
-				break;
+				case Parser::SEMICOLON:
+					while (isData () && nextToken () != Parser::_NEWLINE) ;
 			}
 
 		}
@@ -36,26 +48,46 @@ namespace Parser {
 
 	}
 
-	Machine::OPCode * Parser::parse_AND (void) {
+#undef BEGIN
+#undef OP
+#undef END
 
-		Machine::Parameter *params[3];
+	Machine::OPCode * Parser::parse_opcode (Machine::OPCode op, int params) {
 
-		for (int i = 0; i < 3; ++i) {
-			
-			params[i] = nextParameter ();
-			std::cout << "char: " << *itr << std::endl;
-			if (i < 2 && *itr != ',')
+		Machine::Parameter *p[params];
+	
+		if (parseParameters (params, p) != params)
+			throw new Error::Parser::SyntaxError ();
+
+		std::cout << "New [?] OPcode" << std::endl;
+		Machine::OPCode * ret = new Machine::OPCode (op);
+		for (int i = 0; i < params; ++i)
+			ret->addParameter (p[i]);
+
+		return ret;
+
+	}
+
+	int Parser::parseParameters (int num, Machine::Parameter* p[]) {
+		
+		int i;
+		for (i = 0; i < num; ++i) {
+	
+			if (nextToken () != Parser::WORD) {
+				std::cout << "Expected word" << std::endl;
 				throw new Error::Parser::SyntaxError ();
-			++itr;
+			}
+
+			p[i] = nextParameter ();
+
+			if (i < num - 1 && nextToken () != Parser::COMMA) {
+				std::cout << "Expected comma" << std::endl;
+				throw new Error::Parser::SyntaxError ();
+			}
 
 		}
 
-		std::cout << "New AND OPcode" << std::endl;
-		Machine::OPCode * ret = new Machine::OPCode_AND (*params[0], *params[1], *params[2]);
-		for (int i = 0; i < 3; ++i)
-			delete params[i];
-
-		return ret;
+		return i;
 
 	}
 
@@ -64,67 +96,76 @@ namespace Parser {
 		bool reg = false;
 		char ch;
 		unsigned long int val = 0;
+		std::string::iterator i = word.begin ();
 
-		if (tolower (ch = nextChar ()) == 'r') {
+		if (*i == 'r' || *i == 'R') {
 			reg = true;
-			ch = nextChar ();
+			++i;
 		}
-
-		if (!isdigit (ch)) {
+		
+		if (!isdigit (*i)) {
+			std::cout << "Expected digit" << std::endl;
 			throw new Error::Parser::SyntaxError ();
 		}
-
-		do {
-			val = val * 10 + ch - '0';
-			ch = nextChar ();
-		} while (isdigit (ch));
+			
+		while (i < word.end () && isdigit (*i)) {
+			val = val * 10 + *i - '0';
+			++i;
+		}
 
 		std::cout << "New parameter: 0x" << std::hex << val << ", " << reg << std::endl;
-		--itr;
 
 		return new Machine::Parameter (val, reg);
 
 	}
 
-	bool Parser::isEOS (void) {
+	bool Parser::isData (void) {
 		
-		return !(itr < str.end ());
+		return (itr < str.end ());
 
 	}
 
 	void Parser::skipWs (void) {
 		
-		while (isspace (*itr))
+		while (isspace (*itr) && isData ())
 			++itr;
 
 	}
 
-	char Parser::nextChar (void) {
-	
-		skipWs ();
-
-		if (itr < str.end ())
-			return *itr++;
-		else
-			return Parser::EOS;
-
-	}
-	
-	std::string Parser::nextString (void) {
+	char Parser::nextToken (void) {
 
 		char ch;
 		std::string ret;
 
 		skipWs ();
 
-		while (!isspace (*itr) && itr < str.end ()) {
+		switch (*itr)
+		{
+			case ';':
+				++itr;
+				return Parser::SEMICOLON;
+
+			case '\n':
+				++itr;
+				return Parser::_NEWLINE;
+
+			case ',':
+				++itr;
+				return Parser::COMMA;
+		}
+
+		if (!isalnum (*itr))
+			throw new Error::Parser::SyntaxError ();
+
+		word.clear ();
+		while (isalnum (*itr) && isData ()) {
 			
-			ret.push_back (*itr);
+			word.push_back (*itr);
 			++itr;
 		
 		}
 
-		return ret;
+		return Parser::WORD;
 		
 	}
 

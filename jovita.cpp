@@ -28,8 +28,12 @@ main (int argc, char *argv[])
 
 		add_history (cmd);
 
-		if (!strncasecmp (cmd, "parse ", 6))
-			static_cast<Parser::Parser>(std::string (cmd+6)).nextOPCode ()->execute (cpu);
+		if (!strncasecmp (cmd, "parse ", 6)) {
+			Parser::Parser parser(cmd+6);
+			Machine::OPCode *code;
+			while ( (code = parser.nextOPCode ()) != NULL)
+				code->execute (cpu);
+		}
 		
 		if (!strcasecmp (cmd, "test_and"))
 			test_opcode_and (cpu);
